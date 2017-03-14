@@ -3,15 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace Encrypt
 {
-    class Program
+    interface PartEncrypter : ICloneable
     {
-        static void Main(string[] args)
-        {
-            System.IO.File.OpenRead("great");
-        }
+        int partSize { get; }
+
+        void encryptPart(byte[] part, int size);
     }
 }
- 
