@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,10 +9,15 @@ namespace Encrypt
 {
     class Program
     {
+        enum Сipher {
+            Cesar,
+            Vigener,
+            Permutation
+        }
+
         static void Main(string[] args)
         {
-            System.IO.File.OpenRead("great");
+            Stream inputStream = Console.OpenStandardInput();
+
         }
     }
-}
- 

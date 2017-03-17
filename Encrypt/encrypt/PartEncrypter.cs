@@ -7,10 +7,9 @@ using System.IO;
 
 namespace Encrypt
 {
-    interface PartEncrypter : ICloneable
+    interface PartEncrypter
     {
-        int partSize { get; }
-
-        void encryptPart(byte[] part, int size);
+        void encryptPart(byte[] input, byte[] output);
+        void decryptPart(byte[] input, byte[] output);
     }
 }
