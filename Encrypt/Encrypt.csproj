@@ -43,11 +43,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="encrypt\CesarEncryptor.cs" />
-    <Compile Include="encrypt\PartEncrypter.cs" />
+    <Compile Include="Block.cs" />
+    <Compile Include="Ciphers\CaesarEncrypter.cs" />
+    <Compile Include="Cipher.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="encrypt\StreamEncrypter.cs" />
+    <Compile Include="StreamEncrypter.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

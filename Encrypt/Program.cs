@@ -4,12 +4,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Encrypt.Ciphers;
 
 namespace Encrypt
 {
     class Program
     {
-        enum Сipher {
+        enum Сipher
+        {
             Cesar,
             Vigener,
             Permutation
@@ -17,7 +19,12 @@ namespace Encrypt
 
         static void Main(string[] args)
         {
-            Stream inputStream = Console.OpenStandardInput();
-
+            Stream input = File.Open("input.txt", FileMode.Open, FileAccess.Read);
+            Stream output = File.Open("output.txt", FileMode.Create, FileAccess.Write);
+            StreamEncrypter encrypter = new StreamEncrypter(new CaesarCipher(42), 3);
+            encrypter.Encrypt(input, output);
+            input.Close();
+            output.Close();
         }
     }
+}
