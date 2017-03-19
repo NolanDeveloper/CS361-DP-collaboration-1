@@ -171,12 +171,6 @@ namespace Encrypt
                 newBlocksToProcess[threadIndex].Set();
                 threadIndex = (threadIndex + 1) % threadCount;
                 ++blockIndex;
-
-                if (DateTime.UtcNow.Subtract(lastReport).Seconds >= 2)
-                {
-                    Console.WriteLine("" + (100 * input.Position / input.Length) + "% - " + blockIndex);
-                    lastReport = DateTime.UtcNow;
-                }
             }
             // join threads
             // notify encrypters about end of input
