@@ -44,5 +44,12 @@ namespace Encrypt
         {
             return index - other.index;
         }
+
+        public byte[] releaseBuffer()
+        {
+            var temp = buffer;
+            buffer = null;
+            return temp;
+        }
     }
 }

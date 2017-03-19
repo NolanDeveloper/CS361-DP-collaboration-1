@@ -10,7 +10,7 @@ namespace Encrypt.Ciphers
     {
         private byte key;
 
-        public int BlockSize { get { return 128; } }
+        public int BlockSize { get { return 1024; } }
 
         public CaesarCipher(byte key)
         {
