@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Threading;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace Encrypt
 {
@@ -17,10 +18,10 @@ namespace Encrypt
         private int threadCount;
         private Cipher cipher;
 
-        private LinkedList<Block>[] blocksToProcess;
+        private ConcurrentQueue<Block>[] blocksToProcess;
         private AutoResetEvent[] newBlocksToProcess;
 
-        private SortedSet<Block> blocksToWrite = new SortedSet<Block>();
+        private ConcurrentDictionary<int, Block> blocksToWrite = new ConcurrentDictionary<int, Block>();
         private AutoResetEvent newBlocksToWrite = new AutoResetEvent(false);
 
         private bool finishedReading = false;
@@ -34,11 +35,11 @@ namespace Encrypt
         {
             this.cipher = cipher;
             this.threadCount = threadCount;
-            this.blocksToProcess = new LinkedList<Block>[threadCount];
+            this.blocksToProcess = new ConcurrentQueue<Block>[threadCount];
             this.newBlocksToProcess = new AutoResetEvent[threadCount];
             for (int i = 0; i < threadCount; ++i)
             {
-                blocksToProcess[i] = new LinkedList<Block>();
+                blocksToProcess[i] = new ConcurrentQueue<Block>();
                 newBlocksToProcess[i] = new AutoResetEvent(false);
             }
         }
@@ -49,27 +50,18 @@ namespace Encrypt
             int written = 0;
             while (true)
             {
-                if (0 == blocksToWrite.Count && finishedProcessing)
-                    break;
-                if (0 == blocksToWrite.Count)
+                Block block = null;
+                bool gotValue;
+                while (!(gotValue = blocksToWrite.TryGetValue(written, out block)) && !finishedProcessing)
                     newBlocksToWrite.WaitOne();
-                Block block;
-                lock (blocksToWrite)
-                {
-                    if (0 == blocksToWrite.Count)
-                        continue;
-                    block = blocksToWrite.Min;
-                    if (block.Index != written)
-                        continue;
-                    blocksToWrite.Remove(block);
-                }
+                if (!gotValue) break;
                 block.WriteTo(output);
-                releaseBuffer(block.releaseBuffer());
+                ReleaseBuffer(block.ReleaseBuffer());
                 ++written;
             }
         }
 
-        class ThreadState
+        private class ThreadState
         {
             public int threadNumber;
             public bool encrypt;
@@ -88,47 +80,36 @@ namespace Encrypt
             var newBlocks = newBlocksToProcess[threadState.threadNumber];
             while (true)
             {
-                if (0 == blocks.Count && finishedReading)
-                    break;
-                if (0 == blocks.Count)
+                Block block = null;
+                bool gotValue;
+                while (!(gotValue = blocks.TryDequeue(out block)) && !finishedReading)
                     newBlocks.WaitOne();
-                Block block;
-                lock (blocks)
-                {
-                    if (0 == blocks.Count)
-                        continue;
-                    block = blocks.First.Value;
-                    blocks.RemoveFirst();
-                }
+                if (!gotValue) break;
                 block.ProcessWith(cipher, threadState.encrypt);
-                lock (blocksToWrite)
-                    blocksToWrite.Add(block);
+                blocksToWrite.TryAdd(block.Index, block);
                 newBlocksToWrite.Set();
             }
         }
 
-        private byte[] obtainBuffer()
+        private byte[] ObtainBuffer()
         {
-            while (true)
+            byte[] buffer;
+            if (bufferPool.TryTake(out buffer))
+                return buffer;
+            if (totalBufferSize + cipher.BlockSize <= TOTAL_BUFFER_SIZE_LIMIT)
             {
-                byte[] buffer;
-                lock (bufferPool)
-                    if (bufferPool.TryTake(out buffer))
-                        return buffer;
-                if (totalBufferSize + cipher.BlockSize <= TOTAL_BUFFER_SIZE_LIMIT)
-                {
-                    buffer = new byte[cipher.BlockSize];
-                    totalBufferSize += cipher.BlockSize;
-                    return buffer;
-                }
-                else newFreeBuffers.WaitOne();
+                buffer = new byte[cipher.BlockSize];
+                totalBufferSize += cipher.BlockSize;
+                return buffer;
             }
+            while (!bufferPool.TryTake(out buffer))
+                newFreeBuffers.WaitOne();
+            return buffer;
         }
 
-        private void releaseBuffer(byte[] buffer)
+        private void ReleaseBuffer(byte[] buffer)
         {
-            lock (bufferPool)
-                bufferPool.Add(buffer);
+            bufferPool.Add(buffer);
             newFreeBuffers.Set();
         }
 
@@ -148,11 +129,10 @@ namespace Encrypt
             // keep adding blocks to encription queue
             int threadIndex = 0;
             int blockIndex = 0;
-            DateTime lastReport = DateTime.UtcNow;
             while (true)
             {
                 // read next block
-                byte[] buffer = obtainBuffer();
+                byte[] buffer = ObtainBuffer();
                 int offset = 0;
                 while (offset != buffer.Length)
                 {
@@ -165,9 +145,7 @@ namespace Encrypt
                     break;
                 // send this block to encrypter
                 Block newBlock = new Block(blockIndex, buffer, offset);
-                var blockToProcess = blocksToProcess[threadIndex];
-                lock (blockToProcess)
-                    blockToProcess.AddLast(newBlock);
+                blocksToProcess[threadIndex].Enqueue(newBlock);
                 newBlocksToProcess[threadIndex].Set();
                 threadIndex = (threadIndex + 1) % threadCount;
                 ++blockIndex;

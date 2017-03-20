@@ -19,10 +19,10 @@ namespace Encrypt
 
         static void Main(string[] args)
         {
-            Stream input = File.Open("input.txt", FileMode.Open, FileAccess.Read);
-            Stream output = File.Open("output.txt", FileMode.Create, FileAccess.Write);
+            Stream input = File.OpenRead("output.txt");
+            Stream output = File.OpenWrite("output1.txt");
             StreamEncrypter encrypter = new StreamEncrypter(new CaesarCipher(42), 3);
-            encrypter.Encrypt(input, output);
+            encrypter.Decrypt(input, output);
             input.Close();
             output.Close();
         }

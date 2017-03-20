@@ -45,7 +45,7 @@ namespace Encrypt
             return index - other.index;
         }
 
-        public byte[] releaseBuffer()
+        public byte[] ReleaseBuffer()
         {
             var temp = buffer;
             buffer = null;
