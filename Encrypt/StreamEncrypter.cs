@@ -159,6 +159,7 @@ namespace Encrypt
                 thread.Join();
             finishedProcessing = true;
             newBlocksToWrite.Set();
+
             writerThread.Join();
         }
 
