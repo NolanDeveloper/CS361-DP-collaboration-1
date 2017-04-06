@@ -26,13 +26,9 @@ namespace Encrypt
         public void ProcessWith(Cipher cipher, bool encrypt)
         {
             if (encrypt)
-            {
                 cipher.EncryptBlock(buffer, length);
-            }
             else
-            {
                 cipher.DecryptBlock(buffer, length);
-            }
         }
 
         public void WriteTo(Stream output)

@@ -32,8 +32,6 @@ namespace Encrypt
             input = File.OpenRead("output.txt");
             output = File.OpenWrite("output_what.txt");
 
-            //StreamEncrypter encrypter1 = new StreamEncrypter(new CaesarCipher(2), 3);
-
             encrypter.Decrypt(input, output);
 
             input.Close();

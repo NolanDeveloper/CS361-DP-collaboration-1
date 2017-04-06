@@ -24,8 +24,8 @@ namespace Encrypt
         private ConcurrentDictionary<int, Block> blocksToWrite = new ConcurrentDictionary<int, Block>();
         private AutoResetEvent newBlocksToWrite = new AutoResetEvent(false);
 
-        private bool finishedReading = false;
-        private bool finishedProcessing = false;
+        private bool finishedReading;
+        private bool finishedProcessing;
 
         private AutoResetEvent newFreeBuffers = new AutoResetEvent(false);
         private ConcurrentBag<byte[]> bufferPool = new ConcurrentBag<byte[]>();
@@ -52,7 +52,7 @@ namespace Encrypt
             {
                 Block block = null;
                 bool gotValue;
-                while (!(gotValue = blocksToWrite.TryGetValue(written, out block)) && !finishedProcessing)
+                while (!(gotValue = blocksToWrite.TryRemove(written, out block)) && !finishedProcessing)
                     newBlocksToWrite.WaitOne();
                 if (!gotValue) break;
                 block.WriteTo(output);
@@ -115,6 +115,8 @@ namespace Encrypt
 
         private void ProcessData(Stream input, Stream output, bool encrypt)
         {
+            finishedReading = false;
+            finishedProcessing = false;
             // spawn threads
             Thread[] processorThread = new Thread[threadCount];
             for (int i = 0; i < threadCount; ++i)
@@ -159,8 +161,8 @@ namespace Encrypt
                 thread.Join();
             finishedProcessing = true;
             newBlocksToWrite.Set();
-
             writerThread.Join();
+            bufferPool = new ConcurrentBag<byte[]>();
         }
 
         public void Encrypt(Stream input, Stream output)
@@ -173,5 +175,4 @@ namespace Encrypt
             ProcessData(input, output, false);
         }
     }
-
 }
