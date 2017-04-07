@@ -10,7 +10,7 @@ using System.Diagnostics;
 
 namespace Encrypt
 {
-    class StreamEncrypter
+    public class StreamEncrypter
     {
         private const int TEN_MB = 10 * 1024 * 1024;
         private const int TOTAL_BUFFER_SIZE_LIMIT = TEN_MB;

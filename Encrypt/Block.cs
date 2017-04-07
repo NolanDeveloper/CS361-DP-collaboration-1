@@ -8,7 +8,7 @@ using System.Diagnostics;
 
 namespace Encrypt
 {
-    class Block : IComparable<Block>
+    public class Block : IComparable<Block>
     {
         private int index;
         private byte[] buffer;

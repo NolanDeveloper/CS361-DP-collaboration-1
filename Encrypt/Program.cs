@@ -8,7 +8,7 @@ using Encrypt.Ciphers;
 
 namespace Encrypt
 {
-    class Program
+    public class Program
     {
         enum Сipher
         {

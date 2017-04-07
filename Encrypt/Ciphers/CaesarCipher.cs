@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Encrypt.Ciphers
 {
-    class CaesarCipher : Cipher
+    public class CaesarCipher : Cipher
     {
         private byte key;
 

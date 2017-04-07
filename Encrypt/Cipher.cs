@@ -7,7 +7,7 @@ using System.IO;
 
 namespace Encrypt
 {
-    interface Cipher
+    public interface Cipher
     {
         /// <summary>
         /// Required block size in bytes. All blocks except last one must be 
