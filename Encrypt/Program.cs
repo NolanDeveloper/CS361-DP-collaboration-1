@@ -15,7 +15,7 @@ namespace Encrypt
         public static void ShowHelp()
         {
             Console.WriteLine("usage:");
-            Console.WriteLine(System.AppDomain.CurrentDomain.FriendlyName + " -c [caesar|vigenere] <key> "
+            Console.WriteLine(AppDomain.CurrentDomain.FriendlyName + " -c [caesar|vigenere] <key> "
                 + "[-i <input file>] [-o <output file>] [-e|-d] [-t <number of threads>]");
             Console.WriteLine("where");
             Console.WriteLine("<key> for caesar cipher is integer value between " + byte.MinValue 
