@@ -1,0 +1,1 @@
+Encrypt -c vigenere simple -i input.txt -o output.txt -d -t 5

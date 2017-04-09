@@ -1,0 +1,1 @@
+Encrypt -c caesar 42 -i input.txt -o output.txt -e -t 5
