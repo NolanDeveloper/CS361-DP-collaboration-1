@@ -8,7 +8,7 @@ namespace Encrypt.Ciphers
 {
     public class CaesarCipher : Cipher
     {
-        private byte key;
+        private readonly byte key;
 
         public int BlockSize { get { return 1024; } }
 

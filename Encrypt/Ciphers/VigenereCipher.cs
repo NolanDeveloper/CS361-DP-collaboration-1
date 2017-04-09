@@ -8,26 +8,25 @@ namespace Encrypt.Ciphers
 {
     class VigenereCipher : Cipher
     {
-        private string key;
+        private readonly byte[] key;
 
-        public int BlockSize
-        {
-            get { return key.Length; }
-        }
+        public int BlockSize { get { return key.Length; } }
 
-        public VigenereCipher(string key)
+        public VigenereCipher(byte[] key)
         {
             this.key = key;
         }
 
-        public void DecryptBlock(byte[] block, int length)
-        {
-            throw new NotImplementedException();
-        }
-
         public void EncryptBlock(byte[] block, int length)
         {
-            throw new NotImplementedException();
+            for (int i = 0; i < length; ++i)
+                block[i] += key[i];
+        }
+
+        public void DecryptBlock(byte[] block, int length)
+        {
+            for (int i = 0; i < length; ++i)
+                block[i] -= key[i];
         }
     }
 }

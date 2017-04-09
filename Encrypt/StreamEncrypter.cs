@@ -15,19 +15,19 @@ namespace Encrypt
         private const int TEN_MB = 10 * 1024 * 1024;
         private const int TOTAL_BUFFER_SIZE_LIMIT = TEN_MB;
 
-        private int threadCount;
-        private Cipher cipher;
+        private readonly int threadCount;
+        private readonly Cipher cipher;
 
-        private ConcurrentQueue<Block>[] blocksToProcess;
-        private AutoResetEvent[] newBlocksToProcess;
+        private readonly ConcurrentQueue<Block>[] blocksToProcess;
+        private readonly AutoResetEvent[] newBlocksToProcess;
 
-        private ConcurrentDictionary<int, Block> blocksToWrite = new ConcurrentDictionary<int, Block>();
-        private AutoResetEvent newBlocksToWrite = new AutoResetEvent(false);
+        private readonly ConcurrentDictionary<int, Block> blocksToWrite = new ConcurrentDictionary<int, Block>();
+        private readonly AutoResetEvent newBlocksToWrite = new AutoResetEvent(false);
 
         private bool finishedReading;
         private bool finishedProcessing;
 
-        private AutoResetEvent newFreeBuffers = new AutoResetEvent(false);
+        private readonly AutoResetEvent newFreeBuffers = new AutoResetEvent(false);
         private ConcurrentBag<byte[]> bufferPool = new ConcurrentBag<byte[]>();
         private int totalBufferSize = 0;
 

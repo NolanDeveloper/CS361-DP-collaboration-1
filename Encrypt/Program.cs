@@ -10,9 +10,9 @@ namespace Encrypt
 {
     public class Program
     {
-        public static readonly string[] CIPEHRS = { "caesar", "vigenere" };
+        private static readonly string[] CIPEHRS = { "caesar", "vigenere" };
 
-        public static void ShowHelp()
+        private static void ShowHelp()
         {
             Console.WriteLine("usage:");
             Console.WriteLine(AppDomain.CurrentDomain.FriendlyName + " -c [caesar|vigenere] <key> "
@@ -26,11 +26,15 @@ namespace Encrypt
             Console.WriteLine("if no -e or -d were provided encryption will be performed.");
         }
 
-        private class SecondOccurenceException : Exception
+        private static void SecondOccurenceError(string parameter)
         {
-            public SecondOccurenceException(string parameter)
-                : base(parameter + " parameter must be used only once.")
-            { }
+            ParameterError(parameter + " parameter must be used only once.");
+        }
+
+        private static void ParameterError(string error)
+        {
+            Console.Error.WriteLine(error);
+            Environment.Exit(-1);
         }
 
         public static void Main(string[] args)
@@ -51,68 +55,68 @@ namespace Encrypt
                 if (args[i] == "-c")
                 {
                     if (null != cipher)
-                        throw new SecondOccurenceException("-c");
+                        SecondOccurenceError("-c");
                     if (args.Length <= i + 1)
-                        throw new Exception("Expected cipher name after -c. Supported: "
+                        ParameterError("Expected cipher name after -c. Supported: "
                             + String.Join(" ", CIPEHRS));
                     if (args.Length <= i + 2)
-                        throw new Exception("Expected key after cipher name.");
+                        ParameterError("Expected key after cipher name.");
                     String cipherName = args[i + 1];
                     if (cipherName == "caesar")
                     {
                         byte keyValue;
                         if (!byte.TryParse(args[i + 2], out keyValue))
-                            throw new Exception("Caesar key must be an integer value between "
+                            ParameterError("Caesar key must be an integer value between "
                                 + byte.MinValue + " and " + byte.MaxValue + ".");
                         cipher = new CaesarCipher(keyValue);
                     }
                     else if (cipherName == "vigenere")
                     {
                         if (0 == args[i + 2].Length)
-                            throw new Exception("Vigenere key cannot be empty string.");
-                        cipher = new VigenereCipher(args[i + 2]);
+                            ParameterError("Vigenere key cannot be empty string.");
+                        cipher = new VigenereCipher(Encoding.ASCII.GetBytes(args[i + 2]));
                     }
                     else
-                        throw new Exception("Unsupported cipher: " + cipherName + "."
-                            + Environment.NewLine + ". Choose one of: "
-                            + String.Join(" ", CIPEHRS));
-                    i += 2;
+                        ParameterError("Unsupported cipher: " + cipherName
+                            + ". Choose one of: " + String.Join(" ", CIPEHRS));
+                    i += 3;
                 }
                 else if (args[i] == "-i")
                 {
-                    if (null != cipher)
-                        throw new SecondOccurenceException("-i");
+                    if (null != input)
+                        SecondOccurenceError("-i");
                     if (args.Length <= i + 1)
-                        throw new Exception("Expected file name after -i.");
+                        ParameterError("Expected file name after -i.");
                     input = File.OpenRead(args[i + 1]);
-                    ++i;
+                    i += 2;
                 }
                 else if (args[i] == "-o")
                 {
-                    if (null != cipher)
-                        throw new SecondOccurenceException("-o");
+                    if (null != output)
+                        SecondOccurenceError("-o");
                     if (args.Length <= i + 1)
-                        throw new Exception("Expected file name after -o.");
+                        ParameterError("Expected file name after -o.");
                     output = File.OpenWrite(args[i + 1]);
-                    ++i;
+                    i += 2;
                 }
                 else if (args[i] == "-e" || args[i] == "-d")
                 {
-                    if (null != cipher)
-                        throw new Exception("Only one of -e, -d can be used.");
+                    if (null != encode)
+                        ParameterError("Only one of -e, -d can be used.");
                     encode = args[i] == "-e";
                     ++i;
                 }
                 else if (args[i] == "-t")
                 {
                     if (null != threadCount)
-                        throw new SecondOccurenceException("-t");
+                        SecondOccurenceError("-t");
                     if (args.Length <= i + 1)
-                        throw new Exception("Expected number of threads after -t.");
+                        ParameterError("Expected number of threads after -t.");
                     int n;
                     if (!int.TryParse(args[i + 1], out n))
-                        throw new Exception("Expected number of threads after -t.");
+                        ParameterError("Expected number of threads after -t.");
                     threadCount = n;
+                    i += 2;
                 }
                 else if (args[i] == "-h")
                 {
@@ -120,10 +124,10 @@ namespace Encrypt
                     return;
                 }
                 else
-                    throw new Exception("Unknown parameter: " + args[i] + ".");
+                    ParameterError("Unknown parameter: " + args[i] + ".");
             }
             if (null == cipher)
-                throw new Exception("No cipher provided.");
+                ParameterError("No cipher provided.");
             if (null == input)
                 input = Console.OpenStandardInput();
             if (null == output)

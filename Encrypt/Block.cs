@@ -10,9 +10,9 @@ namespace Encrypt
 {
     public class Block : IComparable<Block>
     {
-        private int index;
+        private readonly int index;
+        private readonly int length;
         private byte[] buffer;
-        private int length;
 
         public int Index { get { return index; } }
 
