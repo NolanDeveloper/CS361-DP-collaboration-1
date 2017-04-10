@@ -12,9 +12,6 @@ namespace Encrypt
 {
     public class StreamEncrypter
     {
-        private const int TEN_MB = 10 * 1024 * 1024;
-        private const int TOTAL_BUFFER_SIZE_LIMIT = TEN_MB;
-
         private readonly int threadCount;
         private readonly Cipher cipher;
 
@@ -27,9 +24,7 @@ namespace Encrypt
         private bool finishedReading;
         private bool finishedProcessing;
 
-        private readonly AutoResetEvent newFreeBuffers = new AutoResetEvent(false);
-        private ConcurrentBag<byte[]> bufferPool = new ConcurrentBag<byte[]>();
-        private int totalBufferSize = 0;
+        private readonly BufferPool bufferPool;
 
         public StreamEncrypter(Cipher cipher, int threadCount)
         {
@@ -37,6 +32,7 @@ namespace Encrypt
             this.threadCount = threadCount;
             this.blocksToProcess = new ConcurrentQueue<Block>[threadCount];
             this.newBlocksToProcess = new AutoResetEvent[threadCount];
+            this.bufferPool = new BufferPool(cipher.BlockSize);
             for (int i = 0; i < threadCount; ++i)
             {
                 blocksToProcess[i] = new ConcurrentQueue<Block>();
@@ -56,7 +52,7 @@ namespace Encrypt
                     newBlocksToWrite.WaitOne();
                 if (!gotValue) break;
                 block.WriteTo(output);
-                ReleaseBuffer(block.ReleaseBuffer());
+                bufferPool.ReleaseBuffer(block.ReleaseBuffer());
                 ++written;
             }
         }
@@ -91,28 +87,6 @@ namespace Encrypt
             }
         }
 
-        private byte[] ObtainBuffer()
-        {
-            byte[] buffer;
-            if (bufferPool.TryTake(out buffer))
-                return buffer;
-            if (totalBufferSize + cipher.BlockSize <= TOTAL_BUFFER_SIZE_LIMIT)
-            {
-                buffer = new byte[cipher.BlockSize];
-                totalBufferSize += cipher.BlockSize;
-                return buffer;
-            }
-            while (!bufferPool.TryTake(out buffer))
-                newFreeBuffers.WaitOne();
-            return buffer;
-        }
-
-        private void ReleaseBuffer(byte[] buffer)
-        {
-            bufferPool.Add(buffer);
-            newFreeBuffers.Set();
-        }
-
         private void ProcessData(Stream input, Stream output, bool encrypt)
         {
             finishedReading = false;
@@ -134,7 +108,7 @@ namespace Encrypt
             while (true)
             {
                 // read next block
-                byte[] buffer = ObtainBuffer();
+                byte[] buffer = bufferPool.ObtainBuffer();
                 int offset = 0;
                 while (offset != buffer.Length)
                 {
@@ -162,7 +136,7 @@ namespace Encrypt
             finishedProcessing = true;
             newBlocksToWrite.Set();
             writerThread.Join();
-            bufferPool = new ConcurrentBag<byte[]>();
+            bufferPool.Clean();
         }
 
         public void Encrypt(Stream input, Stream output)

@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Block.cs" />
+    <Compile Include="BufferPool.cs" />
     <Compile Include="Ciphers\CaesarCipher.cs" />
     <Compile Include="Cipher.cs" />
     <Compile Include="Ciphers\VigenereCipher.cs" />

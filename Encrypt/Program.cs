@@ -23,7 +23,7 @@ namespace Encrypt
             Console.WriteLine("<key> for vigener is not empty ascii string");
             Console.WriteLine("if no input or ouput file was provided standard stream will be used");
             Console.WriteLine("-e and -d flags specify desired operation: encrypt or decrypt");
-            Console.WriteLine("if no -e or -d were provided encryption will be performed.");
+            Console.WriteLine("if neighter -e or -d were provided encryption will be performed.");
         }
 
         private static void SecondOccurenceError(string parameter)
