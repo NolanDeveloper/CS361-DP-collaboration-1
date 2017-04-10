@@ -8,9 +8,10 @@
 в папке EncryptTest - юнит тесты.
 
 ## Использование:
-
-\<program name> -c [caesar|vigenere] \<key> [-i \<input file>] [-o \<output file>] 
-               [-e|-d] [-t \<number of threads>]
+```
+<program name> -c [caesar|vigenere] <key> [-i <input file>] [-o <output file>] 
+               [-e|-d] [-t <number of threads>]
+```
                
 где
 
